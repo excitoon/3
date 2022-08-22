@@ -1,4 +1,4 @@
-Tree tool written in Python.
+`.gitignore`-aware tree tool written in Python.
 
 Example:
 
@@ -14,6 +14,8 @@ Output:
 ├── 3
 ├── LICENSE.md
 ├── README.md
+├── pyproject.toml
+├── requirements.txt
 └── setup.py
 ```
 
