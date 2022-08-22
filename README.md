@@ -9,11 +9,12 @@ Example:
 Output:
 
 ```
-.gitignore
-3
-LICENSE.md
-README.md
-setup.py
+.
+├── .gitignore
+├── 3
+├── LICENSE.md
+├── README.md
+└── setup.py
 ```
 
 ### Install
