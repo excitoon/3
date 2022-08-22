@@ -6,6 +6,8 @@ Example:
 3
 ```
 
+Output:
+
 ```
 .gitignore
 3
