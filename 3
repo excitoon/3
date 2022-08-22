@@ -4,20 +4,20 @@ import os
 import sys
 
 
-paths = sys.argv[1:] or ['.']
+paths = sys.argv[1:] or ["."]
 
 
-def process_path(path, prefix=''):
+def process_path(path, prefix=""):
     children = sorted(os.listdir(path))
     for i, name in enumerate(children):
-        if name != '.git':
-            sticks = '├──' if i != len(children)-1 else '└──'
-            print(f'{prefix}{sticks}', name)
+        if name != ".git":
+            sticks = "├──" if i != len(children) - 1 else "└──"
+            print(f"{prefix}{sticks}", name)
 
             sub_path = os.path.join(path, name)
             if os.path.isdir(sub_path):
-                sticks = '│   ' if i != len(children)-1 else '    '
-                process_path(os.path.join(path, name), prefix=f'{prefix}{sticks}')
+                sticks = "│   " if i != len(children) - 1 else "    "
+                process_path(os.path.join(path, name), prefix=f"{prefix}{sticks}")
 
 
 for path in paths:
