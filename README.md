@@ -15,3 +15,9 @@ LICENSE.md
 README.md
 setup.py
 ```
+
+### Install
+
+```
+pip3 install 3-py
+```
