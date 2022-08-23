@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="3-py",
-    version="1.0.3",
+    version="1.0.4",
     description="`.gitignore`-aware tree tool written in Python",
     long_description="`.gitignore`-aware tree tool written in Python.",
     long_description_content_type="text/markdown",
@@ -11,7 +11,7 @@ setuptools.setup(
     author_email="vladimir.chebotarev@gmail.com",
     license="MIT",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
     ],
