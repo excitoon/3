@@ -92,10 +92,30 @@ def process_path(path, prefix="", gitignores=[]):
                 statistics["files"] += 1
 
 
+def get_parents(path):
+    while True:
+        new_path = os.path.join(path, "..")
+        if not os.path.samefile(path, new_path):
+            yield new_path
+            path = new_path
+        else:
+            break
+
+
 statistics = {"directories": 0, "files": 0}
 for path in paths:
+    gitignores = []
+    for parent in get_parents(path):
+        gitignore_path = os.path.join(parent, ".gitignore")
+        if os.path.isfile(gitignore_path):
+            gitignore = gitignore_parser.parse_gitignore(gitignore_path)
+            if not gitignore(path):
+                gitignores.append(gitignore)
+            else:
+                break
+
     print(apply_color(path, path))
-    process_path(path)
+    process_path(path, gitignores=gitignores)
 
 print()
 print(", ".join((f"{v} {k}" for k, v in statistics.items())))
