@@ -1,3 +1,5 @@
+# `3`
+
 `.gitignore`-aware tree tool written in Python.
 
 Example:
@@ -19,7 +21,7 @@ Output:
 └── setup.py
 ```
 
-### Install
+## Install
 
 ```
 pip3 install 3-py
