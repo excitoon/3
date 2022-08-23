@@ -72,7 +72,7 @@ def apply_color(name, path):
 
 
 def process_path(path, prefix="", gitignores=[]):
-    children = sorted(os.listdir(path))
+    children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
 
     if ".gitignore" in children:
         gitignores = gitignores + [gitignore_parser.parse_gitignore(os.path.join(path, ".gitignore"))]
