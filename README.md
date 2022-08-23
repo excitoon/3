@@ -10,16 +10,7 @@ Example:
 
 Output:
 
-```
-.
-├── .gitignore
-├── 3
-├── LICENSE.md
-├── README.md
-├── pyproject.toml
-├── requirements.txt
-└── setup.py
-```
+![](examples/3.png)
 
 ## Install
 
