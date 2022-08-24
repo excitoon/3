@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="3-py",
-    version="1.0.9",
+    version="1.1.0",
     description="`.gitignore`-aware tree tool written in Python",
     long_description="`.gitignore`-aware tree tool written in Python.",
     long_description_content_type="text/markdown",
@@ -21,6 +21,7 @@ setuptools.setup(
         "Source": "https://github.com/excitoon/3",
         "Tracker": "https://github.com/excitoon/3/issues",
     },
+    url="https://github.com/excitoon/3",
     packages=[],
     scripts=["3"],
     install_requires=["gitignore-parser"],

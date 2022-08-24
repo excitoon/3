@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import itertools
 import os
 import stat
 import sys
@@ -76,7 +77,14 @@ def apply_color(name, path, is_link):
         return name
 
 
-def process_path(path, prefix="", gitignores=[]):
+def pairwise(collection):
+    # Supporting lower Pythons.
+    a, b = itertools.tee(collection)
+    next(b, None)
+    return zip(a, b)
+
+
+def filter_path(path, prefix, gitignores):
     children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
 
     if ".gitignore" in children:
@@ -97,17 +105,18 @@ def process_path(path, prefix="", gitignores=[]):
             link_suffix = ""
 
         if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
-            filtered_children.append((sub_path, is_link, name, link_path, link_suffix))
+            yield sub_path, is_link, name, link_path, link_suffix
 
-    children.clear()
 
-    # TODO two-pointers processing to avoid buffering delays.
-    for i, (sub_path, is_link, name, link_path, link_suffix) in enumerate(filtered_children):
-        sticks = "├──" if i != len(filtered_children) - 1 else "└──"
+def process_path(path, prefix="", gitignores=[]):
+    for (sub_path, is_link, name, link_path, link_suffix), next in pairwise(
+        itertools.chain(filter_path(path, prefix, gitignores), [None])
+    ):
+        sticks = "├──" if next else "└──"
         print(f"{prefix}{sticks}", f"{apply_color(name, link_path, is_link)}{link_suffix}")
 
         if not is_link and os.path.isdir(sub_path):
-            sticks = "│   " if i != len(filtered_children) - 1 else "    "
+            sticks = "│   " if next else "    "
             process_path(sub_path, prefix=f"{prefix}{sticks}", gitignores=gitignores)
             statistics["directories"] += 1
 
