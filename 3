@@ -82,7 +82,8 @@ def process_path(path, prefix="", gitignores=[]):
     if ".gitignore" in children:
         gitignores = gitignores + [gitignore_parser.parse_gitignore(os.path.join(path, ".gitignore"))]
 
-    for i, name in enumerate(children):
+    filtered_children = []
+    for name in children:
         sub_path = os.path.join(path, name)
 
         is_link = os.path.islink(sub_path)
@@ -96,16 +97,22 @@ def process_path(path, prefix="", gitignores=[]):
             link_suffix = ""
 
         if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
-            sticks = "├──" if i != len(children) - 1 else "└──"
-            print(f"{prefix}{sticks}", f"{apply_color(name, link_path, is_link)}{link_suffix}")
+            filtered_children.append((sub_path, is_link, name, link_path, link_suffix))
 
-            if not is_link and os.path.isdir(sub_path):
-                sticks = "│   " if i != len(children) - 1 else "    "
-                process_path(sub_path, prefix=f"{prefix}{sticks}", gitignores=gitignores)
-                statistics["directories"] += 1
+    children.clear()
 
-            else:
-                statistics["files"] += 1
+    # TODO two-pointers processing to avoid buffering delays.
+    for i, (sub_path, is_link, name, link_path, link_suffix) in enumerate(filtered_children):
+        sticks = "├──" if i != len(filtered_children) - 1 else "└──"
+        print(f"{prefix}{sticks}", f"{apply_color(name, link_path, is_link)}{link_suffix}")
+
+        if not is_link and os.path.isdir(sub_path):
+            sticks = "│   " if i != len(filtered_children) - 1 else "    "
+            process_path(sub_path, prefix=f"{prefix}{sticks}", gitignores=gitignores)
+            statistics["directories"] += 1
+
+        else:
+            statistics["files"] += 1
 
 
 def get_parents(path):
