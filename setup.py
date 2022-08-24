@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="3-py",
-    version="1.1.0",
+    version="1.1.1",
     description="`.gitignore`-aware tree tool written in Python",
     long_description="`.gitignore`-aware tree tool written in Python.",
     long_description_content_type="text/markdown",
@@ -12,10 +12,16 @@ setuptools.setup(
     license="MIT",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: Software Development",
+        "Topic :: Terminals",
+        "Topic :: Utilities",
     ],
-    keywords="git gitignore tree",
+    keywords=["git", "gitignore", "tree"],
     project_urls={
         "Documentation": "https://github.com/excitoon/3/blob/master/README.md",
         "Source": "https://github.com/excitoon/3",
@@ -23,6 +29,6 @@ setuptools.setup(
     },
     url="https://github.com/excitoon/3",
     packages=[],
-    scripts=["3"],
+    scripts=["3", "3.cmd"],
     install_requires=["gitignore-parser"],
 )

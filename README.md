@@ -17,3 +17,7 @@ Output:
 ```
 pip3 install 3-py
 ```
+
+### Compatibility
+
+If you are on Windows, install `colorama` in order to watch some colors.
