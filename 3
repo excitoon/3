@@ -97,11 +97,11 @@ def filter_path(path, prefix, gitignores):
             link_suffix = ""
 
         if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
-            yield sub_path, is_link, name, link_suffix, mode
+            yield sub_path, is_link, name, link_suffix, mode, gitignores
 
 
 def process_path(path, prefix="", gitignores=[]):
-    for (sub_path, is_link, name, link_suffix, mode), next in pairwise(
+    for (sub_path, is_link, name, link_suffix, mode, gitignores), next in pairwise(
         itertools.chain(filter_path(path, prefix, gitignores), [None])
     ):
         sticks = "├──" if next else "└──"
