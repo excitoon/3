@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="3-py",
-    version="1.1.1",
+    version="1.1.2",
     description="`.gitignore`-aware tree tool written in Python",
     long_description="`.gitignore`-aware tree tool written in Python.",
     long_description_content_type="text/markdown",

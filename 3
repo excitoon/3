@@ -11,54 +11,51 @@ import gitignore_parser
 paths = sys.argv[1:] or ["."]
 
 
-def color(path, is_link):
-    try:
-        mode = os.stat(path, follow_symlinks=False).st_mode
-        type = stat.S_IFMT(mode)
-
-    except FileNotFoundError:
+def color(name, mode, is_link):
+    if mode is None:
         if is_link:
             return "or"
         else:
             return "mi"
-
-    if type == stat.S_IFIFO:
-        return "fi"
-    elif type == stat.S_IFCHR:
-        return "cd"
-    elif type == stat.S_IFDIR:
-        if mode & stat.S_ISVTX:
-            return "tw" if mode & stat.S_IWOTH else "st"
-        elif mode & stat.S_IWOTH:
-            return "ow"
-        else:
-            return "di"
-    elif type == stat.S_IFBLK:
-        return "bd"
-    elif type == stat.S_IFLNK:
-        return "ln"
-    elif type == stat.S_IFDOOR:
-        return "do"
-    elif type == stat.S_IFSOCK:
-        return "so"
-    elif type == stat.S_IFREG:
-        ext = f"*{os.path.splitext(path)[1]}"
-        if mode & stat.S_ISUID:
-            return "su"
-        elif mode & stat.S_ISGID:
-            return "sg"
-        elif mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH):
-            return "ex"
-        elif ext in colors:
-            return ext
-        else:
-            return "fi"
     else:
-        return "no"
+        type = stat.S_IFMT(mode)
+        if type == stat.S_IFIFO:
+            return "fi"
+        elif type == stat.S_IFCHR:
+            return "cd"
+        elif type == stat.S_IFDIR:
+            if mode & stat.S_ISVTX:
+                return "tw" if mode & stat.S_IWOTH else "st"
+            elif mode & stat.S_IWOTH:
+                return "ow"
+            else:
+                return "di"
+        elif type == stat.S_IFBLK:
+            return "bd"
+        elif type == stat.S_IFLNK:
+            return "ln"
+        elif type == stat.S_IFDOOR:
+            return "do"
+        elif type == stat.S_IFSOCK:
+            return "so"
+        elif type == stat.S_IFREG:
+            ext = f"*{os.path.splitext(name)[1]}"
+            if mode & stat.S_ISUID:
+                return "su"
+            elif mode & stat.S_ISGID:
+                return "sg"
+            elif mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH):
+                return "ex"
+            elif ext in colors:
+                return ext
+            else:
+                return "fi"
+        else:
+            return "no"
 
 
-def apply_color(name, path, is_link):
-    name_color = color(path, is_link)
+def apply_color(name, mode, is_link):
+    name_color = color(name, mode, is_link)
     if name_color in colors:
         return f"\033[{colors[name_color]}m{name}\033[0m"
     else:
@@ -72,36 +69,43 @@ def pairwise(collection):
     return zip(a, b)
 
 
+def get_mode(path):
+    try:
+        return os.lstat(path).st_mode
+    except FileNotFoundError:
+        """"""
+
+
 def filter_path(path, prefix, gitignores):
     children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
 
     if ".gitignore" in children:
         gitignores = gitignores + [gitignore_parser.parse_gitignore(os.path.join(path, ".gitignore"))]
 
-    filtered_children = []
     for name in children:
         sub_path = os.path.join(path, name)
-
-        is_link = os.path.islink(sub_path)
+        mode = get_mode(sub_path)
+        is_link = mode and stat.S_IFMT(mode) == stat.S_IFLNK
         if is_link:
-            link_destination = os.readlink(sub_path)
-            link_path = os.path.join(path, link_destination)
-            link_suffix = f" -> {apply_color(link_destination, link_path, False)}"
+            link = os.readlink(sub_path)
+            link_mode = get_mode(os.path.join(path, link))
+            link_suffix = f" -> {apply_color(link, link_mode, False)}"
+            if link_mode is None:
+                mode = None
 
         else:
-            link_path = sub_path
             link_suffix = ""
 
         if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
-            yield sub_path, is_link, name, link_path, link_suffix
+            yield sub_path, is_link, name, link_suffix, mode
 
 
 def process_path(path, prefix="", gitignores=[]):
-    for (sub_path, is_link, name, link_path, link_suffix), next in pairwise(
+    for (sub_path, is_link, name, link_suffix, mode), next in pairwise(
         itertools.chain(filter_path(path, prefix, gitignores), [None])
     ):
         sticks = "├──" if next else "└──"
-        print(f"{prefix}{sticks}", f"{apply_color(name, link_path, is_link)}{link_suffix}")
+        print(f"{prefix}{sticks}", f"{apply_color(name, mode, is_link)}{link_suffix}")
 
         if not is_link and os.path.isdir(sub_path):
             sticks = "│   " if next else "    "
@@ -129,7 +133,7 @@ if os.name == "nt":
         colorama.init()
 
     except ImportError:
-        apply_color = lambda x, y, z: x
+        apply_color = lambda x, *y: x
 
 colors = dict(
     [
@@ -146,7 +150,9 @@ colors = dict(
 statistics = {"directories": 0, "files": 0}
 for path in paths:
     gitignores = []
-    try:
+    is_dir = os.path.isdir(path)
+    if is_dir:
+        """FIXME gitignore_parser shall not fail on wrong link destinations"""
         for parent in get_parents(path):
             gitignore_path = os.path.join(parent, ".gitignore")
             if os.path.isfile(gitignore_path):
@@ -156,13 +162,14 @@ for path in paths:
                 else:
                     break
 
-    except FileNotFoundError:
-        """FIXME gitignore_parser shall not fail on wrong link destinations"""
-        print(apply_color(path, path, False), "[error opening dir]")
+    mode = get_mode(path)
+    colored_name = apply_color(path, mode, False)
+    if is_dir:
+        print(colored_name)
+        process_path(path, gitignores=gitignores)
 
     else:
-        print(apply_color(path, path, False))
-        process_path(path, gitignores=gitignores)
+        print(colored_name, "[error opening dir]")
 
 print()
 print(", ".join((f"{v} {k}" for k, v in statistics.items())))
