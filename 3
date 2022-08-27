@@ -93,7 +93,7 @@ def filter_path(path, prefix):
         else:
             link_suffix = ""
 
-        if name != ".git" and (is_link and "FIXME" or not gitignores(sub_path)):
+        if name != ".git" and not gitignores(sub_path):
             yield sub_path, is_link, name, link_suffix, mode
 
 
