@@ -5,7 +5,7 @@ import os
 import stat
 import sys
 
-import gitignore_parser
+import gitignorefile
 
 
 paths = sys.argv[1:] or ["."]
@@ -76,11 +76,8 @@ def get_mode(path):
         """"""
 
 
-def filter_path(path, prefix, gitignores):
+def filter_path(path, prefix):
     children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
-
-    if ".gitignore" in children:
-        gitignores = gitignores + [gitignore_parser.parse_gitignore(os.path.join(path, ".gitignore"))]
 
     for name in children:
         sub_path = os.path.join(path, name)
@@ -96,34 +93,24 @@ def filter_path(path, prefix, gitignores):
         else:
             link_suffix = ""
 
-        if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
-            yield sub_path, is_link, name, link_suffix, mode, gitignores
+        if name != ".git" and (is_link and "FIXME" or not gitignores(sub_path)):
+            yield sub_path, is_link, name, link_suffix, mode
 
 
-def process_path(path, prefix="", gitignores=[]):
-    for (sub_path, is_link, name, link_suffix, mode, gitignores), next in pairwise(
-        itertools.chain(filter_path(path, prefix, gitignores), [None])
+def process_path(path, prefix=""):
+    for (sub_path, is_link, name, link_suffix, mode), next in pairwise(
+        itertools.chain(filter_path(path, prefix), [None])
     ):
         sticks = "├──" if next else "└──"
         print(f"{prefix}{sticks}", f"{apply_color(name, mode, is_link)}{link_suffix}")
 
         if not is_link and os.path.isdir(sub_path):
             sticks = "│   " if next else "    "
-            process_path(sub_path, prefix=f"{prefix}{sticks}", gitignores=gitignores)
+            process_path(sub_path, prefix=f"{prefix}{sticks}")
             statistics["directories"] += 1
 
         else:
             statistics["files"] += 1
-
-
-def get_parents(path):
-    while True:
-        new_path = os.path.join(path, "..")
-        if not os.path.samefile(path, new_path):
-            yield new_path
-            path = new_path
-        else:
-            break
 
 
 if os.name == "nt":
@@ -147,26 +134,14 @@ colors = dict(
     ]
 )
 
+gitignores = gitignorefile.Cache()
 statistics = {"directories": 0, "files": 0}
 for path in paths:
-    gitignores = []
-    is_dir = os.path.isdir(path)
-    if is_dir:
-        """FIXME gitignore_parser shall not fail on wrong link destinations"""
-        for parent in get_parents(path):
-            gitignore_path = os.path.join(parent, ".gitignore")
-            if os.path.isfile(gitignore_path):
-                gitignore = gitignore_parser.parse_gitignore(gitignore_path)
-                if not gitignore(path):
-                    gitignores.append(gitignore)
-                else:
-                    break
-
     mode = get_mode(path)
     colored_name = apply_color(path, mode, False)
-    if is_dir:
+    if stat.S_IFMT(mode) == stat.S_IFDIR:
         print(colored_name)
-        process_path(path, gitignores=gitignores)
+        process_path(path)
 
     else:
         print(colored_name, "[error opening dir]")
