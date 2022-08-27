@@ -139,7 +139,7 @@ statistics = {"directories": 0, "files": 0}
 for path in paths:
     mode = get_mode(path)
     colored_name = apply_color(path, mode, False)
-    if stat.S_IFMT(mode) == stat.S_IFDIR:
+    if mode is not None and stat.S_IFMT(mode) == stat.S_IFDIR:
         print(colored_name)
         process_path(path)
 

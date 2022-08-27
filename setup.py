@@ -5,7 +5,7 @@ import setuptools
 with open(f"{os.path.dirname(os.path.abspath(__file__))}/README.md") as readme:
     setuptools.setup(
         name="3-py",
-        version="1.1.5",
+        version="1.1.6",
         description="`.gitignore`-aware tree tool written in Python",
         long_description=readme.read(),
         long_description_content_type="text/markdown",
