@@ -72,7 +72,8 @@ def pairwise(collection):
 def get_mode(path):
     try:
         return os.lstat(path).st_mode
-    except FileNotFoundError:
+
+    except (FileNotFoundError, PermissionError):
         """"""
 
 
@@ -86,14 +87,14 @@ def filter_path(path, prefix):
         if is_link:
             link = os.readlink(sub_path)
             link_mode = get_mode(os.path.join(path, link))
-            is_dir = link_mode and stat.S_IFMT(link_mode) == stat.S_IFDIR
+            is_dir = (link_mode or False) and stat.S_IFMT(link_mode) == stat.S_IFDIR
             link_suffix = f" -> {apply_color(link, link_mode, False)}"
             if link_mode is None:
                 mode = None
 
         else:
             link_suffix = ""
-            is_dir = mode and stat.S_IFMT(mode) == stat.S_IFDIR
+            is_dir = (mode or False) and stat.S_IFMT(mode) == stat.S_IFDIR
 
         if name != ".git" and not gitignores(sub_path, is_dir=is_dir):
             yield sub_path, is_link, is_dir, name, link_suffix, mode
