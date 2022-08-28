@@ -30,5 +30,5 @@ setuptools.setup(
     url="https://github.com/excitoon/3",
     packages=[],
     scripts=["3", "3.cmd"],
-    install_requires=["gitignore-parser"],
+    install_requires=["pathspec"],
 )

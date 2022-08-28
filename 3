@@ -2,10 +2,9 @@
 
 import itertools
 import os
+import pathspec
 import stat
 import sys
-
-import gitignore_parser
 
 
 paths = sys.argv[1:] or ["."]
@@ -80,7 +79,8 @@ def filter_path(path, prefix, gitignores):
     children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
 
     if ".gitignore" in children:
-        gitignores = gitignores + [gitignore_parser.parse_gitignore(os.path.join(path, ".gitignore"))]
+        with open(os.path.join(path, ".gitignore")) as f:
+            gitignores = gitignores + [pathspec.PathSpec.from_lines("gitwildmatch", f)]
 
     for name in children:
         sub_path = os.path.join(path, name)
@@ -96,7 +96,7 @@ def filter_path(path, prefix, gitignores):
         else:
             link_suffix = ""
 
-        if name != ".git" and ("FIXME" and is_link or all((not gitignore(sub_path) for gitignore in gitignores))):
+        if name != ".git" and all((not gitignore.match_file(sub_path) for gitignore in gitignores)):
             yield sub_path, is_link, name, link_suffix, mode, gitignores
 
 
@@ -152,15 +152,15 @@ for path in paths:
     gitignores = []
     is_dir = os.path.isdir(path)
     if is_dir:
-        """FIXME gitignore_parser shall not fail on wrong link destinations"""
         for parent in get_parents(path):
             gitignore_path = os.path.join(parent, ".gitignore")
             if os.path.isfile(gitignore_path):
-                gitignore = gitignore_parser.parse_gitignore(gitignore_path)
-                if not gitignore(path):
-                    gitignores.append(gitignore)
-                else:
-                    break
+                with open(gitignore_path) as f:
+                    gitignore = pathspec.PathSpec.from_lines("gitwildmatch", f)
+                    if not gitignore.match_file(path):
+                        gitignores.append(gitignore)
+                    else:
+                        break
 
     mode = get_mode(path)
     colored_name = apply_color(path, mode, False)
