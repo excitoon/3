@@ -23,6 +23,7 @@ class Test3(unittest.TestCase):
 │   └── [01;34mworkflows[0m
 │       ├── [00mblack.yml[0m
 │       ├── [00mmacos.yml[0m
+│       ├── [00msetup.yml[0m
 │       ├── [00mubuntu.yml[0m
 │       └── [00mwindows.yml[0m
 ├── [00m.gitignore[0m
@@ -37,6 +38,6 @@ class Test3(unittest.TestCase):
 ├── [00msetup.py[0m
 └── [00mtests.py[0m
 
-3 directories, 14 files
+3 directories, 15 files
 """.lstrip().encode(),
         )
