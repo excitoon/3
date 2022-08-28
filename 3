@@ -86,25 +86,27 @@ def filter_path(path, prefix):
         if is_link:
             link = os.readlink(sub_path)
             link_mode = get_mode(os.path.join(path, link))
+            is_dir = link_mode and stat.S_IFMT(link_mode) == stat.S_IFDIR
             link_suffix = f" -> {apply_color(link, link_mode, False)}"
             if link_mode is None:
                 mode = None
 
         else:
             link_suffix = ""
+            is_dir = mode and stat.S_IFMT(mode) == stat.S_IFDIR
 
-        if name != ".git" and not gitignores(sub_path):
-            yield sub_path, is_link, name, link_suffix, mode
+        if name != ".git" and not gitignores(sub_path, is_dir=is_dir):
+            yield sub_path, is_link, is_dir, name, link_suffix, mode
 
 
 def process_path(path, prefix=""):
-    for (sub_path, is_link, name, link_suffix, mode), next in pairwise(
+    for (sub_path, is_link, is_dir, name, link_suffix, mode), next in pairwise(
         itertools.chain(filter_path(path, prefix), [None])
     ):
         sticks = "├──" if next else "└──"
         print(f"{prefix}{sticks}", f"{apply_color(name, mode, is_link)}{link_suffix}")
 
-        if not is_link and os.path.isdir(sub_path):
+        if not is_link and is_dir:
             sticks = "│   " if next else "    "
             process_path(sub_path, prefix=f"{prefix}{sticks}")
             statistics["directories"] += 1
