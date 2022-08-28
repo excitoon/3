@@ -104,7 +104,7 @@ def process_path(path, prefix=""):
         itertools.chain(filter_path(path, prefix), [None])
     ):
         sticks = "├──" if next else "└──"
-        print(f"{prefix}{sticks}", f"{apply_color(name, mode, is_link)}{link_suffix}")
+        print(f"{prefix}{sticks} {apply_color(name, mode, is_link)}{link_suffix}")
 
         if not is_link and is_dir:
             sticks = "│   " if next else "    "
