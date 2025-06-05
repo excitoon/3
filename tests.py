@@ -9,8 +9,35 @@ class Test3(unittest.TestCase):
         env = {k: v for k, v in os.environ.items() if not k.endswith("_COLORS")}
         env["PYTHONUTF8"] = "1"
         process = subprocess.run(
-            os.path.abspath("3"),
-            shell=True,
+            [os.path.abspath("3")],
+            env=env,
+            stdout=subprocess.PIPE,
+        )
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(
+            process.stdout,
+            """
+[01;34m.[0m
+├── [01;32m3[0m
+├── [01;32m3.cmd[0m
+├── [01;34mexamples[0m
+│   └── [00m3.png[0m
+├── [00mLICENSE.md[0m
+├── [00mpyproject.toml[0m
+├── [00mREADME.md[0m
+├── [00mrequirements.txt[0m
+├── [00msetup.py[0m
+└── [00mtests.py[0m
+
+1 directories, 9 files
+""".lstrip().encode(),
+        )
+
+    def test_all(self):
+        env = {k: v for k, v in os.environ.items() if not k.endswith("_COLORS")}
+        env["PYTHONUTF8"] = "1"
+        process = subprocess.run(
+            [os.path.abspath("3"), "-a"],
             env=env,
             stdout=subprocess.PIPE,
         )
