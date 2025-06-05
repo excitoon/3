@@ -23,13 +23,14 @@ class Test3(unittest.TestCase):
 ├── [01;34mexamples[0m
 │   └── [00m3.png[0m
 ├── [00mLICENSE.md[0m
+├── [00mMANIFEST.in[0m
 ├── [00mpyproject.toml[0m
 ├── [00mREADME.md[0m
 ├── [00mrequirements.txt[0m
 ├── [00msetup.py[0m
 └── [00mtests.py[0m
 
-1 directories, 9 files
+1 directories, 10 files
 """.lstrip().encode(),
         )
 
@@ -59,12 +60,13 @@ class Test3(unittest.TestCase):
 ├── [01;34mexamples[0m
 │   └── [00m3.png[0m
 ├── [00mLICENSE.md[0m
+├── [00mMANIFEST.in[0m
 ├── [00mpyproject.toml[0m
 ├── [00mREADME.md[0m
 ├── [00mrequirements.txt[0m
 ├── [00msetup.py[0m
 └── [00mtests.py[0m
 
-3 directories, 15 files
+3 directories, 16 files
 """.lstrip().encode(),
         )
