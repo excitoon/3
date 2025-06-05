@@ -6,7 +6,7 @@ with open(f"{os.path.dirname(os.path.abspath(__file__))}/requirements.txt") as r
     with open(f"{os.path.dirname(os.path.abspath(__file__))}/README.md") as readme:
         setuptools.setup(
             name="3-py",
-            version="1.1.6",
+            version="2.0.0",
             description="`.gitignore`-aware tree tool written in Python",
             long_description=readme.read(),
             long_description_content_type="text/markdown",

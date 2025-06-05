@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import itertools
 import os
 import stat
@@ -9,6 +10,11 @@ import gitignorefile
 
 
 paths = sys.argv[1:] or ["."]
+parser = argparse.ArgumentParser()
+parser.add_argument("directory", nargs="*", default=["."], help="Directory.")
+parser.add_argument("-a", action="store_true", help="All files are printed.")
+parser.add_argument("-s", action="store_true", help="Print the size of each file in bytes along with the name.")
+args = parser.parse_args()
 
 
 def color(name, mode, is_link):
@@ -69,9 +75,10 @@ def pairwise(collection):
     return zip(a, b)
 
 
-def get_mode(path):
+def get_mode_and_size(path):
     try:
-        return os.lstat(path).st_mode
+        stat = os.lstat(path)
+        return stat.st_mode, stat.st_size
 
     except (FileNotFoundError, PermissionError):
         """"""
@@ -81,12 +88,14 @@ def filter_path(path, prefix):
     children = sorted(os.listdir(path), key=lambda name: (name.lower(), name))
 
     for name in children:
+        if not args.a and name.startswith("."):
+            continue
         sub_path = os.path.join(path, name)
-        mode = get_mode(sub_path)
+        mode, size = get_mode_and_size(sub_path)
         is_link = mode and stat.S_IFMT(mode) == stat.S_IFLNK
         if is_link:
             link = os.readlink(sub_path)
-            link_mode = get_mode(os.path.join(path, link))
+            link_mode, _ = get_mode_and_size(os.path.join(path, link))
             is_dir = (link_mode or False) and stat.S_IFMT(link_mode) == stat.S_IFDIR
             link_suffix = f" -> {apply_color(link, link_mode, False)}"
             if link_mode is None:
@@ -97,15 +106,18 @@ def filter_path(path, prefix):
             is_dir = (mode or False) and stat.S_IFMT(mode) == stat.S_IFDIR
 
         if name != ".git" and not gitignores(sub_path, is_dir=is_dir):
-            yield sub_path, is_link, is_dir, name, link_suffix, mode
+            yield sub_path, is_link, is_dir, name, link_suffix, mode, size
 
 
 def process_path(path, prefix=""):
-    for (sub_path, is_link, is_dir, name, link_suffix, mode), next in pairwise(
+    for (sub_path, is_link, is_dir, name, link_suffix, mode, size), next in pairwise(
         itertools.chain(filter_path(path, prefix), [None])
     ):
         sticks = "├──" if next else "└──"
-        print(f"{prefix}{sticks} {apply_color(name, mode, is_link)}{link_suffix}")
+        colored_name = apply_color(name, mode, is_link)
+        if args.s:
+            colored_name = f"[{str(size).rjust(11)}]  {colored_name}"
+        print(f"{prefix}{sticks} {colored_name}{link_suffix}")
 
         if not is_link and is_dir:
             sticks = "│   " if next else "    "
@@ -139,9 +151,11 @@ colors = dict(
 
 gitignores = gitignorefile.Cache()
 statistics = {"directories": 0, "files": 0}
-for path in paths:
-    mode = get_mode(path)
+for path in args.directory:
+    mode, size = get_mode_and_size(path)
     colored_name = apply_color(path, mode, False)
+    if args.s:
+        colored_name = f"[{str(size).rjust(11)}]  {colored_name}"
     if mode is not None and stat.S_IFMT(mode) == stat.S_IFDIR:
         print(colored_name)
         process_path(path)
